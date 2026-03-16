@@ -343,7 +343,7 @@
             
             <div style="padding: 15px 20px; border-top: 1px solid #eee;">
                 <div style="display:flex; gap:10px;">
-                    <input type="text" id="userInput" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:6px; font-family: 'Montserrat', sans-serif;" placeholder="Pune o întrebare asistentului AI...">
+                    <input type="text" id="userInput" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:6px; font-family: 'Montserrat', sans-serif;" placeholder="Pune o întrebare consultantului Valoria...">
                     <button onclick="processQuest()" style="background:var(--valoria-dark); color:white; border:none; padding:0 20px; border-radius:6px; cursor:pointer; font-weight:700;">Trimite</button>
                 </div>
             </div>
@@ -486,7 +486,7 @@
             const history = document.getElementById('chatHistory');
             history.innerHTML = '';
             const welcomeMsgs = {
-                'training': 'Salut! Sunt asistentul tău pentru Training. Cum te pot ajuta să crești performanța echipei tale?',
+                'training': 'Salut! Sunt consultantul tău Valoria pentru Training. Cum te pot ajuta să crești performanța echipei tale?',
                 'consultanta': 'Bună! Analizăm eficiența business-ului tău. Ce procese vrei să optimizăm astăzi?',
                 'coaching': 'Bine ai venit la sesiunea de coaching strategic. Care este provocarea ta de leadership acum?'
             };
@@ -533,21 +533,43 @@
 
             const sys = `Ești un expert Consultant Valoria specializat în ${currentActiveTab}. Oferă un răspuns scurt, strategic și empatic în limba română.`;
             
+            async function callGemini(prompt, systemPrompt, retries = 5) {
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const payload = {
+                    contents: [{ parts: [{ text: prompt }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] }
+                };
+
+                for (let i = 0; i < retries; i++) {
+                    try {
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        
+                        if (response.ok) {
+                            const data = await response.json();
+                            return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                        }
+                    } catch (err) {
+                        // Silent retry logic with backoff
+                    }
+                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                }
+                throw new Error("Failed after retries");
+            }
+
             try {
-                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: val }] }],
-                        systemInstruction: { parts: [{ text: sys }] }
-                    })
-                });
-                const data = await res.json();
-                const botReply = data.candidates[0].content.parts[0].text;
-                addMessage(botReply, 'bot');
+                const botReply = await callGemini(val, sys);
+                if (botReply) {
+                    addMessage(botReply, 'bot');
+                } else {
+                    throw new Error("Empty response");
+                }
             } catch (e) {
-                addMessage("Momentan asistentul AI este offline, dar poți vizita valoria.ro pentru detalii.", 'bot');
+                console.error("Chat Error:", e);
+                addMessage("Momentan consultantul Valoria are o dificultate tehnică. Te rugăm să încerci din nou sau să vizitezi valoria.ro pentru detalii.", 'bot');
             } finally {
                 document.getElementById('loadingDots').style.display = 'none';
             }
