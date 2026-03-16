@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valoria Business Solutions - Accelerator de Rezultate</title>
+    
+    <!-- Meta Tags pentru Social Media -->
+    <meta name="description" content="Vrei rezultate reale? Accesează expertiza Valoria pentru soluții strategice care scalează afacerea ta. Click pentru detalii!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://valoria.ro/">
+    <meta property="og:title" content="Valoria - Transformăm provocările în profit 🚀">
+    <meta property="og:description" content="Accelerează rezultatele afacerii tale cu strategii de elită, training și coaching pentru performanță garantată.">
+    <meta property="og:image" content="https://valoria.ro/wp-content/uploads/2021/05/valoria-social-share.jpg"> 
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --valoria-red: #E31E24;
+            --valoria-dark: #1A1A1A;
+            --valoria-grey: #3A3A3A;
+            --light-grey: #F5F5F5;
+            --white: #FFFFFF;
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--white);
+            color: var(--valoria-dark);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 { font-family: 'Playfair Display', serif; }
+
+        /* --- Floating Social Bar --- */
+        .floating-social {
+            position: fixed;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        .social-icon {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+            transition: var(--transition);
+            border-radius: 0 5px 5px 0;
+            margin-bottom: 2px;
+        }
+
+        .social-icon:hover { width: 65px; padding-left: 15px; }
+        .wa { background-color: #25D366; }
+        .li { background-color: #0077B5; }
+        .fb { background-color: #1877F2; }
+
+        /* --- Header --- */
+        header {
+            padding: 20px;
+            text-align: center;
+            background: white;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-container { display: inline-block; max-width: 280px; width: 100%; }
+        .logo-img { width: 100%; height: auto; display: block; }
+
+        /* --- Hero --- */
+        .hero {
+            padding: 60px 20px;
+            text-align: center;
+            background: linear-gradient(rgba(255,255,255,0.92), rgba(255,255,255,0.92)), url('https://www.transparenttextures.com/patterns/grid-me.png');
+        }
+
+        .badge-premium {
+            display: inline-block;
+            background: #2ecc71;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .hero h1 { font-size: 2.5rem; margin-bottom: 15px; color: var(--valoria-red); }
+
+        /* --- Grid --- */
+        .quest-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+            max-width: 1200px;
+            margin: 0 auto 50px;
+            padding: 0 20px;
+        }
+
+        .quest-card {
+            background: white;
+            border: 1px solid #f0f0f0;
+            padding: 40px 30px;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            flex: 1 1 300px;
+            max-width: 360px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .quest-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+            border-color: var(--valoria-red);
+        }
+
+        .quest-card i { font-size: 2.8rem; color: var(--valoria-red); margin-bottom: 20px; }
+
+        /* --- Modal & Tabs --- */
+        #dialogOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .dialog-content {
+            background: white;
+            width: 100%;
+            max-width: 900px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+            overflow: hidden;
+        }
+
+        .dialog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--light-grey);
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tabs-nav {
+            display: flex;
+            background: var(--light-grey);
+            border-top: 1px solid #ddd;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: 'Montserrat', sans-serif;
+            transition: var(--transition);
+            color: var(--valoria-grey);
+            border-top: 3px solid transparent;
+        }
+
+        .tab-btn.active {
+            color: var(--valoria-red);
+            border-top-color: var(--valoria-red);
+            background: white;
+        }
+
+        .dialog-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-area { display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; flex-grow: 1; }
+
+        .message { padding: 14px 18px; border-radius: 12px; max-width: 85%; font-size: 0.95rem; }
+        .bot-message { background: #f1f1f1; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .user-message { background: var(--valoria-red); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .link-box {
+            background: #fdfdfd;
+            border: 1px dashed #ccc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .btn-link {
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--valoria-red);
+            text-decoration: none;
+            font-weight: 700;
+            border-bottom: 2px solid var(--valoria-red);
+        }
+
+        /* Stats Dashboard Styling */
+        #statsDashboard {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.95);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            z-index: 3000;
+            display: none;
+            border: 2px solid var(--valoria-red);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            min-width: 260px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #333;
+        }
+
+        .footer-cta { text-align: center; padding: 40px 20px; }
+        .btn-visit {
+            display: inline-block; background: var(--valoria-red); color: white; 
+            padding: 18px 45px; text-decoration: none; border-radius: 6px; 
+            font-weight: 700; text-transform: uppercase; transition: var(--transition);
+        }
+        .btn-visit:hover { transform: translateY(-3px); background: #c2181d; }
+
+    </style>
+</head>
+<body>
+
+    <div class="floating-social">
+        <a href="https://api.whatsapp.com/send?text=Vrei%20rezultate%20reale%20%C3%AEn%20business%3F%20Vezi%20expertiza%20Valoria%3A%20https%3A%2F%2Fvaloria.ro" class="social-icon wa" target="_blank"><i class="fab fa-whatsapp"></i></a>
+        <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://valoria.ro" class="social-icon li" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        <a href="https://www.facebook.com/sharer/sharer.php?u=https://valoria.ro" class="social-icon fb" target="_blank"><i class="fab fa-facebook-f"></i></a>
+    </div>
+
+    <header>
+        <div class="logo-container">
+            <!-- Imaginea logo furnizată de tine -->
+            <img src="LOGO_VALORIA-1-removebg-preview.png" alt="Valoria Logo" class="logo-img">
+        </div>
+    </header>
+
+    <section class="hero">
+        <div class="badge-premium"><i class="fas fa-check-circle"></i> ROI & Performanță Maximă</div>
+        <h1>Valoria Business Accelerator</h1>
+        <p>Expertiză strategică pentru companii care vor să scaleze.</p>
+    </section>
+
+    <section class="quest-grid">
+        <div class="quest-card" onclick="openQuest('training')">
+            <i class="fas fa-graduation-cap"></i>
+            <h3>Training & Dezvoltare</h3>
+            <p>Echipe performante prin învățare continuă și skill-uri practice.</p>
+        </div>
+        <div class="quest-card" onclick="openQuest('consultanta')">
+            <i class="fas fa-chart-line"></i>
+            <h3>Consultanță Management</h3>
+            <p>Strategii de business pentru eficiență și profitabilitate.</p>
+        </div>
+        <div class="quest-card" onclick="openQuest('coaching')">
+            <i class="fas fa-users"></i>
+            <h3>Executive Coaching</h3>
+            <p>Deblocarea potențialului de leadership la cel mai înalt nivel.</p>
+        </div>
+    </section>
+
+    <div class="footer-cta">
+        <a href="https://valoria.ro/" target="_blank" class="btn-visit">VREAU REZULTATE CU VALORIA</a>
+    </div>
+
+    <!-- Modala cu Chat și Tab-uri -->
+    <div id="dialogOverlay">
+        <div class="dialog-content">
+            <div class="dialog-header">
+                <span style="font-weight: 700; color: var(--valoria-red);">Consultant Strategic Valoria</span>
+                <button onclick="closeQuest()" style="font-size: 24px; border: none; background: none; cursor: pointer;">&times;</button>
+            </div>
+            
+            <div class="dialog-body">
+                <div id="chatHistory" class="chat-area"></div>
+                <div id="loadingDots" style="display:none; padding:10px; font-size:0.8rem; color:#888;">Analizăm datele...</div>
+
+                <div id="content-training" class="tab-content">
+                    <div class="link-box">
+                        <p>Descoperă cursurile de vânzări și management.</p>
+                        <a href="https://valoria.ro/servicii/training/" target="_blank" class="btn-link" onclick="trackExternalClick('training')">Vezi Programele de Training <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                </div>
+
+                <div id="content-consultanta" class="tab-content">
+                    <div class="link-box">
+                        <p>Audit de business și optimizare procese.</p>
+                        <a href="https://valoria.ro/servicii/consultanta/" target="_blank" class="btn-link" onclick="trackExternalClick('consultanta')">Vezi Serviciile de Consultanță <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                </div>
+
+                <div id="content-coaching" class="tab-content">
+                    <div class="link-box">
+                        <p>Coaching pentru CEO și top management.</p>
+                        <a href="https://valoria.ro/servicii/coaching/" target="_blank" class="btn-link" onclick="trackExternalClick('coaching')">Vezi Programele de Coaching <i class="fas fa-external-link-alt"></i></a>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="padding: 15px 20px; border-top: 1px solid #eee;">
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="userInput" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:6px; font-family: 'Montserrat', sans-serif;" placeholder="Pune o întrebare asistentului AI...">
+                    <button onclick="processQuest()" style="background:var(--valoria-dark); color:white; border:none; padding:0 20px; border-radius:6px; cursor:pointer; font-weight:700;">Trimite</button>
+                </div>
+            </div>
+
+            <div class="tabs-nav">
+                <button class="tab-btn" id="tab-training" onclick="switchTab('training')">TRAINING</button>
+                <button class="tab-btn" id="tab-consultanta" onclick="switchTab('consultanta')">CONSULTANȚĂ</button>
+                <button class="tab-btn" id="tab-coaching" onclick="switchTab('coaching')">COACHING</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Admin -->
+    <div id="statsDashboard">
+        <h4 style="margin-bottom:15px; color:var(--valoria-red); text-transform:uppercase; letter-spacing:1px;">Admin Performance</h4>
+        <div id="liveStats">Se verifică autentificarea...</div>
+        <div style="margin-top:15px; display:flex; gap:5px;">
+            <button onclick="logoutAdmin()" style="background:#444; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; flex:1;">Ieșire</button>
+            <button onclick="document.getElementById('statsDashboard').style.display='none'" style="background:var(--valoria-red); color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; flex:1;">Închide</button>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Implementation -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+
+        // Firebase Setup
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'valoria-interactive-suite';
+
+        const ADMIN_PASS = "VALORIA2024"; 
+        let isAdmin = false;
+        let snapshotUnsubscribers = [];
+
+        // Auth Logic (Rule 3)
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) { console.error("Firebase Auth Error:", error); }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) { console.log("Authenticated as:", user.uid); }
+        });
+
+        initAuth();
+
+        // Performance Tracking Function
+        window.trackInteraction = async (category, subType = 'view') => {
+            if (!auth.currentUser) return;
+            // Rule 1: Specific path
+            const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'performance_stats', category);
+            
+            try {
+                const docSnap = await getDoc(statsRef);
+                if (!docSnap.exists()) {
+                    await setDoc(statsRef, { views: 0, link_clicks: 0 });
+                }
+                const field = subType === 'view' ? 'views' : 'link_clicks';
+                await updateDoc(statsRef, {
+                    [field]: increment(1),
+                    last_interaction: new Date().toISOString()
+                });
+            } catch (e) { console.error("Firestore Write Error:", e); }
+        };
+
+        // Admin Real-time Monitoring
+        function startAdminMonitoring() {
+            if (snapshotUnsubscribers.length > 0) return;
+            const categories = ['training', 'consultanta', 'coaching'];
+            
+            categories.forEach(cat => {
+                const q = doc(db, 'artifacts', appId, 'public', 'data', 'performance_stats', cat);
+                const unsub = onSnapshot(q, (snapshot) => {
+                    updateUI(cat, snapshot.data());
+                }, (error) => {
+                    console.error(`Snapshot Permission/Error for ${cat}:`, error);
+                });
+                snapshotUnsubscribers.push(unsub);
+            });
+        }
+
+        window.logoutAdmin = () => {
+            isAdmin = false;
+            snapshotUnsubscribers.forEach(u => u());
+            snapshotUnsubscribers = [];
+            document.getElementById('statsDashboard').style.display = 'none';
+        };
+
+        let statsData = { training: {}, consultanta: {}, coaching: {} };
+        function updateUI(cat, data) {
+            if(!data) return;
+            statsData[cat] = data;
+            const liveDiv = document.getElementById('liveStats');
+            liveDiv.innerHTML = `
+                <div class="stats-row"><span>Training:</span> <b>${statsData.training.views || 0} v / ${statsData.training.link_clicks || 0} c</b></div>
+                <div class="stats-row"><span>Consultanță:</span> <b>${statsData.consultanta.views || 0} v / ${statsData.consultanta.link_clicks || 0} c</b></div>
+                <div class="stats-row"><span>Coaching:</span> <b>${statsData.coaching.views || 0} v / ${statsData.coaching.link_clicks || 0} c</b></div>
+                <p style="font-size:9px; color:#888; margin-top:10px;">v = vizualizări secțiune | c = click link site</p>
+            `;
+        }
+
+        // Secret Admin Access
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.altKey && e.key === 's') {
+                if(!isAdmin) {
+                    const pass = prompt("Introdu codul Admin Valoria pentru statistici:");
+                    if(pass === ADMIN_PASS) {
+                        isAdmin = true;
+                        document.getElementById('statsDashboard').style.display = 'block';
+                        startAdminMonitoring();
+                    } else if (pass !== null) {
+                        alert("Acces refuzat.");
+                    }
+                } else {
+                    document.getElementById('statsDashboard').style.display = 'block';
+                }
+            }
+        });
+    </script>
+
+    <script>
+        const apiKey = ""; 
+        let currentActiveTab = '';
+
+        function openQuest(type) {
+            document.getElementById('dialogOverlay').style.display = 'flex';
+            switchTab(type);
+            if(window.trackInteraction) window.trackInteraction(type, 'view');
+
+            const history = document.getElementById('chatHistory');
+            history.innerHTML = '';
+            const welcomeMsgs = {
+                'training': 'Salut! Sunt asistentul tău pentru Training. Cum te pot ajuta să crești performanța echipei tale?',
+                'consultanta': 'Bună! Analizăm eficiența business-ului tău. Ce procese vrei să optimizăm astăzi?',
+                'coaching': 'Bine ai venit la sesiunea de coaching strategic. Care este provocarea ta de leadership acum?'
+            };
+            addMessage(welcomeMsgs[type], 'bot');
+        }
+
+        function switchTab(type) {
+            if(currentActiveTab !== type && window.trackInteraction) {
+                window.trackInteraction(type, 'view');
+            }
+            currentActiveTab = type;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`tab-${type}`);
+            if(activeBtn) activeBtn.classList.add('active');
+            
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            const activeContent = document.getElementById(`content-${type}`);
+            if(activeContent) activeContent.classList.add('active');
+        }
+
+        function trackExternalClick(type) {
+            if(window.trackInteraction) window.trackInteraction(type, 'link_click');
+        }
+
+        function closeQuest() { document.getElementById('dialogOverlay').style.display = 'none'; }
+
+        function addMessage(text, side) {
+            const history = document.getElementById('chatHistory');
+            const d = document.createElement('div');
+            d.className = `message ${side}-message`;
+            d.innerText = text;
+            history.appendChild(d);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        async function processQuest() {
+            const inp = document.getElementById('userInput');
+            const val = inp.value.trim();
+            if(!val) return;
+
+            addMessage(val, 'user');
+            inp.value = '';
+            document.getElementById('loadingDots').style.display = 'block';
+
+            const sys = `Ești un expert Consultant Valoria specializat în ${currentActiveTab}. Oferă un răspuns scurt, strategic și empatic în limba română.`;
+            
+            try {
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: val }] }],
+                        systemInstruction: { parts: [{ text: sys }] }
+                    })
+                });
+                const data = await res.json();
+                const botReply = data.candidates[0].content.parts[0].text;
+                addMessage(botReply, 'bot');
+            } catch (e) {
+                addMessage("Momentan asistentul AI este offline, dar poți vizita valoria.ro pentru detalii.", 'bot');
+            } finally {
+                document.getElementById('loadingDots').style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
