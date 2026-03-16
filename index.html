@@ -274,7 +274,6 @@
 
     <header>
         <div class="logo-container">
-            <!-- Imaginea logo furnizată de tine -->
             <img src="LOGO_VALORIA-1-removebg-preview.png" alt="Valoria Logo" class="logo-img">
         </div>
     </header>
@@ -403,7 +402,6 @@
         // Performance Tracking Function
         window.trackInteraction = async (category, subType = 'view') => {
             if (!auth.currentUser) return;
-            // Rule 1: Specific path
             const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'performance_stats', category);
             
             try {
@@ -522,6 +520,39 @@
             history.scrollTop = history.scrollHeight;
         }
 
+        // Funcție îmbunătățită pentru apelul API Gemini conform specificațiilor tehnice
+        async function callGemini(userQuery, systemPrompt) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
+            };
+
+            const retryDelays = [1000, 2000, 4000, 8000, 16000];
+            
+            for (let i = 0; i <= retryDelays.length; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        return result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    }
+                } catch (err) {
+                    // Eroare silențioasă pentru retry conform cerințelor
+                }
+                
+                if (i < retryDelays.length) {
+                    await new Promise(resolve => setTimeout(resolve, retryDelays[i]));
+                }
+            }
+            throw new Error("Toate încercările de conectare au eșuat.");
+        }
+
         async function processQuest() {
             const inp = document.getElementById('userInput');
             const val = inp.value.trim();
@@ -533,39 +564,12 @@
 
             const sys = `Ești un expert Consultant Valoria specializat în ${currentActiveTab}. Oferă un răspuns scurt, strategic și empatic în limba română.`;
             
-            async function callGemini(prompt, systemPrompt, retries = 5) {
-                const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-                const payload = {
-                    contents: [{ parts: [{ text: prompt }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] }
-                };
-
-                for (let i = 0; i < retries; i++) {
-                    try {
-                        const response = await fetch(url, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(payload)
-                        });
-                        
-                        if (response.ok) {
-                            const data = await response.json();
-                            return data.candidates?.[0]?.content?.parts?.[0]?.text;
-                        }
-                    } catch (err) {
-                        // Silent retry logic with backoff
-                    }
-                    await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
-                }
-                throw new Error("Failed after retries");
-            }
-
             try {
                 const botReply = await callGemini(val, sys);
                 if (botReply) {
                     addMessage(botReply, 'bot');
                 } else {
-                    throw new Error("Empty response");
+                    throw new Error("Răspuns gol");
                 }
             } catch (e) {
                 console.error("Chat Error:", e);
