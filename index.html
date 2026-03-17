@@ -520,9 +520,9 @@
             history.scrollTop = history.scrollHeight;
         }
 
-        // Funcție îmbunătățită pentru apelul API Gemini conform specificațiilor tehnice
+        // Logica de rețea optimizată pentru mediul Canvas conform protocolului Gemini
         async function callGemini(userQuery, systemPrompt) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
             const payload = {
                 contents: [{ parts: [{ text: userQuery }] }],
                 systemInstruction: { parts: [{ text: systemPrompt }] }
@@ -532,25 +532,27 @@
             
             for (let i = 0; i <= retryDelays.length; i++) {
                 try {
-                    const response = await fetch(url, {
+                    const response = await fetch(endpoint, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
                     
-                    if (response.ok) {
-                        const result = await response.json();
-                        return result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.error?.message || `HTTP error! status: ${response.status}`);
                     }
+
+                    const result = await response.json();
+                    const botText = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (botText) return botText;
+                    throw new Error("Empty response from AI");
+                    
                 } catch (err) {
-                    // Eroare silențioasă pentru retry conform cerințelor
-                }
-                
-                if (i < retryDelays.length) {
+                    if (i === retryDelays.length) throw err;
                     await new Promise(resolve => setTimeout(resolve, retryDelays[i]));
                 }
             }
-            throw new Error("Toate încercările de conectare au eșuat.");
         }
 
         async function processQuest() {
@@ -562,18 +564,14 @@
             inp.value = '';
             document.getElementById('loadingDots').style.display = 'block';
 
-            const sys = `Ești un expert Consultant Valoria specializat în ${currentActiveTab}. Oferă un răspuns scurt, strategic și empatic în limba română.`;
+            const sys = `Ești un expert Consultant Valoria specializat în ${currentActiveTab}. Oferă un răspuns scurt (max 3-4 propoziții), strategic și empatic în limba română. Nu folosi formatări complexe (precum markdown bold excesiv).`;
             
             try {
                 const botReply = await callGemini(val, sys);
-                if (botReply) {
-                    addMessage(botReply, 'bot');
-                } else {
-                    throw new Error("Răspuns gol");
-                }
+                addMessage(botReply, 'bot');
             } catch (e) {
-                console.error("Chat Error:", e);
-                addMessage("Momentan consultantul Valoria are o dificultate tehnică. Te rugăm să încerci din nou sau să vizitezi valoria.ro pentru detalii.", 'bot');
+                console.error("Gemini Error:", e);
+                addMessage("Momentan consultantul Valoria are o dificultate tehnică de conectare. Te rugăm să verifici conexiunea la internet sau să încerci din nou peste câteva momente.", 'bot');
             } finally {
                 document.getElementById('loadingDots').style.display = 'none';
             }
