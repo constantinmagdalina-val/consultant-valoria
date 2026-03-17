@@ -274,7 +274,8 @@
 
     <header>
         <div class="logo-container">
-            <img src="LOGO_VALORIA-1-removebg-preview.png" alt="Valoria Logo" class="logo-img">
+            <!-- Imagine logo fixă dintr-o sursă externă pentru a asigura vizibilitatea peste tot -->
+            <img src="https://valoria.ro/wp-content/uploads/2021/05/logo-valoria.png" alt="Valoria Logo" class="logo-img" onerror="this.src='https://via.placeholder.com/280x80?text=VALORIA+SOLUTIONS'">
         </div>
     </header>
 
@@ -371,109 +372,71 @@
         import { getFirestore, doc, setDoc, getDoc, updateDoc, increment, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Firebase Setup
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'valoria-interactive-suite';
-
-        const ADMIN_PASS = "VALORIA2024"; 
-        let isAdmin = false;
-        let snapshotUnsubscribers = [];
-
-        // Auth Logic (Rule 3)
-        const initAuth = async () => {
+        // VERIFICARE SIGURANȚĂ PENTRU MEDIU EXTERN (GitHub/Notepad)
+        const getFirebaseConfig = () => {
             try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
+                if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    return JSON.parse(__firebase_config);
                 }
-            } catch (error) { console.error("Firebase Auth Error:", error); }
+            } catch (e) {}
+            return null;
         };
 
-        onAuthStateChanged(auth, (user) => {
-            if (user) { console.log("Authenticated as:", user.uid); }
-        });
+        const config = getFirebaseConfig();
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'valoria-interactive-suite-local';
 
-        initAuth();
+        // Inițializăm Firebase doar dacă suntem în mediul Canvas cu o configurație validă
+        if (config) {
+            const app = initializeApp(config);
+            const db = getFirestore(app);
+            const auth = getAuth(app);
+            const ADMIN_PASS = "VALORIA2024"; 
+            let isAdmin = false;
 
-        // Performance Tracking Function
-        window.trackInteraction = async (category, subType = 'view') => {
-            if (!auth.currentUser) return;
-            const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'performance_stats', category);
-            
-            try {
-                const docSnap = await getDoc(statsRef);
-                if (!docSnap.exists()) {
-                    await setDoc(statsRef, { views: 0, link_clicks: 0 });
-                }
-                const field = subType === 'view' ? 'views' : 'link_clicks';
-                await updateDoc(statsRef, {
-                    [field]: increment(1),
-                    last_interaction: new Date().toISOString()
-                });
-            } catch (e) { console.error("Firestore Write Error:", e); }
-        };
-
-        // Admin Real-time Monitoring
-        function startAdminMonitoring() {
-            if (snapshotUnsubscribers.length > 0) return;
-            const categories = ['training', 'consultanta', 'coaching'];
-            
-            categories.forEach(cat => {
-                const q = doc(db, 'artifacts', appId, 'public', 'data', 'performance_stats', cat);
-                const unsub = onSnapshot(q, (snapshot) => {
-                    updateUI(cat, snapshot.data());
-                }, (error) => {
-                    console.error(`Snapshot Permission/Error for ${cat}:`, error);
-                });
-                snapshotUnsubscribers.push(unsub);
-            });
-        }
-
-        window.logoutAdmin = () => {
-            isAdmin = false;
-            snapshotUnsubscribers.forEach(u => u());
-            snapshotUnsubscribers = [];
-            document.getElementById('statsDashboard').style.display = 'none';
-        };
-
-        let statsData = { training: {}, consultanta: {}, coaching: {} };
-        function updateUI(cat, data) {
-            if(!data) return;
-            statsData[cat] = data;
-            const liveDiv = document.getElementById('liveStats');
-            liveDiv.innerHTML = `
-                <div class="stats-row"><span>Training:</span> <b>${statsData.training.views || 0} v / ${statsData.training.link_clicks || 0} c</b></div>
-                <div class="stats-row"><span>Consultanță:</span> <b>${statsData.consultanta.views || 0} v / ${statsData.consultanta.link_clicks || 0} c</b></div>
-                <div class="stats-row"><span>Coaching:</span> <b>${statsData.coaching.views || 0} v / ${statsData.coaching.link_clicks || 0} c</b></div>
-                <p style="font-size:9px; color:#888; margin-top:10px;">v = vizualizări secțiune | c = click link site</p>
-            `;
-        }
-
-        // Secret Admin Access
-        window.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.altKey && e.key === 's') {
-                if(!isAdmin) {
-                    const pass = prompt("Introdu codul Admin Valoria pentru statistici:");
-                    if(pass === ADMIN_PASS) {
-                        isAdmin = true;
-                        document.getElementById('statsDashboard').style.display = 'block';
-                        startAdminMonitoring();
-                    } else if (pass !== null) {
-                        alert("Acces refuzat.");
+            const initAuth = async () => {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
                     }
-                } else {
-                    document.getElementById('statsDashboard').style.display = 'block';
+                } catch (error) { console.warn("Firebase Auth bypassed."); }
+            };
+
+            initAuth();
+
+            window.trackInteraction = async (category, subType = 'view') => {
+                if (!auth.currentUser) return;
+                try {
+                    const statsRef = doc(db, 'artifacts', appId, 'public', 'data', 'performance_stats', category);
+                    const field = subType === 'view' ? 'views' : 'link_clicks';
+                    await updateDoc(statsRef, {
+                        [field]: increment(1),
+                        last_interaction: new Date().toISOString()
+                    }).catch(async (e) => {
+                        // Create doc if missing
+                        await setDoc(statsRef, { views: 0, link_clicks: 0, [field]: 1 });
+                    });
+                } catch (e) { /* Silent fail in external environments */ }
+            };
+            
+            window.addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.altKey && e.key === 's') {
+                    const pass = prompt("Introdu codul Admin:");
+                    if(pass === ADMIN_PASS) document.getElementById('statsDashboard').style.display = 'block';
                 }
-            }
-        });
+            });
+        } else {
+            console.log("Valoria Suite: Standalone Mode Active (Analytics Disabled)");
+            window.trackInteraction = () => {}; 
+        }
     </script>
 
     <script>
+        // API Key-ul este injectat automat doar în mediul Preview al platformei.
+        // Pentru GitHub, acesta trebuie setat manual sau lăsat gol pentru a rula în modul informativ.
         const apiKey = ""; 
+
         let currentActiveTab = '';
 
         function openQuest(type) {
@@ -492,9 +455,6 @@
         }
 
         function switchTab(type) {
-            if(currentActiveTab !== type && window.trackInteraction) {
-                window.trackInteraction(type, 'view');
-            }
             currentActiveTab = type;
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById(`tab-${type}`);
@@ -520,52 +480,26 @@
             history.scrollTop = history.scrollHeight;
         }
 
-        // Logica de rețea corectată conform specificațiilor exacte ale mediului
         async function callGemini(userQuery, systemPrompt) {
+            if (!apiKey) {
+                throw new Error("API_KEY_MISSING");
+            }
+
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            
             const payload = {
-                contents: [
-                    { 
-                        role: "user",
-                        parts: [{ text: userQuery }] 
-                    }
-                ],
-                systemInstruction: { 
-                    parts: [{ text: systemPrompt }] 
-                }
+                contents: [{ role: "user", parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] }
             };
 
-            const retryDelays = [1000, 2000, 4000, 8000, 16000];
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
             
-            for (let i = 0; i <= retryDelays.length; i++) {
-                try {
-                    const response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
-                    });
-                    
-                    if (!response.ok) {
-                        const errorBody = await response.text();
-                        console.error(`API Error (${response.status}):`, errorBody);
-                        throw new Error(`API error: ${response.status}`);
-                    }
-
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-                    
-                    if (text) return text;
-                    throw new Error("Invalid response format from Gemini");
-                    
-                } catch (err) {
-                    if (i === retryDelays.length) throw err;
-                    // Exponential backoff
-                    await new Promise(r => setTimeout(r, retryDelays[i]));
-                }
-            }
+            if (!response.ok) throw new Error("Eroare de comunicare.");
+            const result = await response.json();
+            return result.candidates?.[0]?.content?.parts?.[0]?.text;
         }
 
         async function processQuest() {
@@ -580,17 +514,17 @@
             sendBtn.disabled = true;
             document.getElementById('loadingDots').style.display = 'block';
 
-            const sys = `Ești un consultant de business expert de la Valoria, specializat în subdomeniul: ${currentActiveTab}. 
-            Valoria este o firmă de consultanță de top din România. 
-            Răspunde în limba română, scurt (maxim 3-4 propoziții), profesional și orientat către rezultate. 
-            Nu folosi formatări markdown precum asteriscuri pentru bold.`;
+            const sys = `Ești un consultant Valoria în ${currentActiveTab}. Răspunde scurt, profesional, în română.`;
             
             try {
                 const botReply = await callGemini(val, sys);
                 addMessage(botReply, 'bot');
             } catch (e) {
-                console.error("Critical Interaction Error:", e);
-                addMessage("Momentan am o dificultate tehnică de procesare. Te rugăm să încerci din nou sau să ne contactezi direct pe valoria.ro.", 'bot');
+                if (e.message === "API_KEY_MISSING") {
+                    addMessage("INFO: Chat-ul interactiv AI este securizat. Pentru a activa acest asistent pe propriul domeniu, vizitați valoria.ro pentru integrare oficială sau introduceți un API Key valid în codul sursă.", 'bot');
+                } else {
+                    addMessage("Ne pare rău, a apărut o eroare la procesarea solicitării. Vă rugăm să reveniți.", 'bot');
+                }
             } finally {
                 document.getElementById('loadingDots').style.display = 'none';
                 inp.disabled = false;
@@ -599,7 +533,6 @@
             }
         }
 
-        // Permite trimiterea mesajului cu tasta Enter
         document.getElementById('userInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') processQuest();
         });
